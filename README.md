@@ -13,7 +13,17 @@ Implementation plan: `~/.claude/plans/read-the-doc-in-humble-lemon.md`.
 
 ## Status
 
-Phase 2 ("Hello world" vertical slice) — scaffold compiles and deploys; no rule changes yet.
+All 11 of the original blog post's combat-feat changes are baked. Two
+known scope gaps for v0.1:
+
+- **Change #1 (weapon feats apply to fighter weapon groups)** — not
+  implemented. Install [Weapon Focus Plus](https://www.nexusmods.com/pathfinderwrathoftherighteous/mods/7)
+  alongside this mod for the same effect.
+- **Change #2 partial coverage** — Weapon Finesse and Agile Maneuvers are
+  granted globally, but the explicit weapon re-tagging (rapier / whip /
+  spiked-chain / elven-curve-blade / estoc / starknife → Finessable) is
+  deferred. Stock-Finessable weapons (most "light" weapons) work for
+  everyone; the listed exceptions need a tag sweep over `BlueprintItemWeapon`.
 
 ## Prerequisites
 

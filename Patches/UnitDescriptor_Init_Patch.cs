@@ -11,12 +11,21 @@ namespace EitRForWotr.Patches {
   internal static class UnitDescriptor_Init_Patch {
     static void Postfix(UnitDescriptor __instance) {
       try {
-        var feat = Mutators.FreeCombatOptions.EitrFreebies;
-        if (feat == null) return;
-        if (__instance.Stats?.BaseAttackBonus == null) return;
-        if (__instance.Stats.BaseAttackBonus.BaseValue < 1) return;
-        if (__instance.HasFact(feat)) return;
-        __instance.AddFact(feat);
+        // PA/CE/DA toggles — only at BAB ≥ +1 (matches the feature's prereq).
+        var freebies = Mutators.FreeCombatOptions.EitrFreebies;
+        if (freebies != null
+            && __instance.Stats?.BaseAttackBonus != null
+            && __instance.Stats.BaseAttackBonus.BaseValue >= 1
+            && !__instance.HasFact(freebies)) {
+          __instance.AddFact(freebies);
+        }
+
+        // Finesse rules — no prereq, applies to everyone (the underlying
+        // AttackStatReplacement only triggers when wielding a Finessable weapon).
+        var finesse = Mutators.FinesseWeaponRules.EitrFinesse;
+        if (finesse != null && !__instance.HasFact(finesse)) {
+          __instance.AddFact(finesse);
+        }
       } catch (System.Exception ex) {
         Main.Log.Error("UnitDescriptor_Init_Patch: " + ex);
       }

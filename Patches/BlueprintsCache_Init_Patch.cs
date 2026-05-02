@@ -15,6 +15,8 @@ namespace EitRForWotr.Patches {
         Mutators.PointBlankPrereqStrip.Apply();    // #10
         Mutators.TwoWeaponConsolidation.Apply();   // TWF tweak
         Mutators.ManeuverConsolidation.Apply();    // #5, #6, #8, #9
+        Mutators.FinesseWeaponRules.Apply();       // #2, #3
+        Mutators.DodgeMobilityMerge.Apply();       // #12
         // Future phases:
         //   Mutators.ManeuverConsolidation.Apply();    // #5, #6, #8, #9
         //   Mutators.FinesseWeaponRules.Apply();       // #2, #3
