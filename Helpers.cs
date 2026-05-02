@@ -90,5 +90,29 @@ namespace EitRForWotr {
       var filtered = refs.Where(r => r == null || r.Guid != guid).ToArray();
       if (filtered.Length != refs.Length) field.SetValue(sel, filtered);
     }
+
+    private static readonly FieldInfo PrereqFeatureField =
+        typeof(PrerequisiteFeature).GetField("m_Feature",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+
+    /// <summary>
+    /// For every blueprint, replace any PrerequisiteFeature pointing at
+    /// <paramref name="oldFeat"/> with one pointing at <paramref name="newFeat"/>.
+    /// Use this when consolidating chains (e.g. "Greater Trip now requires
+    /// Deft Maneuvers instead of Improved Trip").
+    /// </summary>
+    public static void RedirectPrerequisite(BlueprintFeature oldFeat, BlueprintFeature newFeat) {
+      if (oldFeat == null || newFeat == null) return;
+      var newRef = newFeat.ToReference<BlueprintFeatureReference>();
+      foreach (var bp in AllBlueprints<BlueprintFeature>()) {
+        var components = bp.ComponentsArray;
+        if (components == null) continue;
+        foreach (var c in components) {
+          if (c is PrerequisiteFeature pr && pr.Feature == oldFeat) {
+            PrereqFeatureField.SetValue(pr, newRef);
+          }
+        }
+      }
+    }
   }
 }
