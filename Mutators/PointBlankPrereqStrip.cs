@@ -3,16 +3,15 @@ using Kingmaker.Blueprints.Classes;
 
 namespace EitRForWotr.Mutators {
   /// <summary>
-  /// EitR change #10 — Point-Blank Shot is gone. Per the original 2012 blog:
-  /// "Gone. Precise Shot replaces it as a prerequisite for further archery feats."
+  /// EitR change #10 (selection/prereq side) — PBS is gone as a *selectable
+  /// feat* and as a prerequisite. The +1/+1 ranged-within-30-ft EFFECT is
+  /// auto-granted to everyone via FinesseWeaponRules; this mutator just
+  /// strips PBS from selection lists and clears prereq references to it.
   ///
-  /// Unlike PA/CE/DA there's no "now a combat option" auto-grant — PBS just
-  /// goes away. Existing characters who took it keep it (saves preserve GUIDs);
-  /// nobody new can take it; nothing requires it as a prereq anymore.
-  ///
-  /// (Iantorno's later comment that "Point Blank Shot still exists" refers to
-  /// the expanded PDF rules document, NOT this blog post — and we're scoped
-  /// to the 2012 blog, not the PDF.)
+  /// Existing characters who took PBS keep it (it remains a no-op duplicate
+  /// fact alongside the auto-granted version — same blueprint, no stacking).
+  /// Class features that auto-grant PBS (e.g. Point-Blank Master, ranger
+  /// Archery Style) are unaffected — they still grant the same blueprint.
   /// </summary>
   internal static class PointBlankPrereqStrip {
     public static void Apply() {

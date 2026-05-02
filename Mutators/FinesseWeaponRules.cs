@@ -6,19 +6,25 @@ using Kingmaker.Blueprints.Classes;
 
 namespace EitRForWotr.Mutators {
   /// <summary>
-  /// EitR changes #2 + #3 — Weapon Finesse and Agile Maneuvers go away as
-  /// feats; everyone gets Dex-on-attack and Dex-on-CMB when wielding a weapon
-  /// tagged Finessable.
+  /// EitR changes #2 + #3 + #10 — globally-granted, no-prereq base feats.
   ///
-  /// Implementation: WOTR's Weapon Finesse and Agile Maneuvers blueprints
-  /// already key off `WeaponSubCategory.Finessable` (via `AttackStatReplacement`
-  /// and `ReplaceCombatManeuverStat` components respectively). So we just grant
-  /// both blueprints as facts globally and strip them from selections —
-  /// no Harmony patch on `RuleCalculateCMB` needed.
+  /// • Weapon Finesse: Dex-on-attack with Finessable weapons (#2)
+  /// • Agile Maneuvers: Dex-on-CMB with Finessable weapons (#3)
+  /// • Point-Blank Shot: +1 to-hit / +1 damage on ranged within 30 ft (#10)
   ///
-  /// Known v0.1 limitation: this only covers weapons WOTR already tagged with
-  /// the Finessable subcategory (most light weapons). Iantorno's spec extends
-  /// the tag to rapier/whip/spiked-chain/elven-curve-blade/estoc/starknife;
+  /// Implementation: WOTR's stock blueprints for these three feats already
+  /// implement the mechanical effects. We just grant them as facts globally
+  /// and strip them from selections (no Harmony patch needed).
+  ///
+  /// Note on PBS: the blog says "Gone. Precise Shot replaces it as a
+  /// prerequisite…" — silent on what happens to the +1/+1 effect. Reading
+  /// the post in context, every other "Gone" feat preserves its effect (auto-
+  /// grant, merge, or consolidation), and PBS is described as a feat-tax of
+  /// the same kind. Treating it as auto-granted matches that pattern.
+  ///
+  /// Known v0.1 limitation: only covers weapons WOTR already tagged with the
+  /// Finessable subcategory (most light weapons). Iantorno's spec extends the
+  /// tag to rapier/whip/spiked-chain/elven-curve-blade/estoc/starknife;
   /// adding those tags is deferred — needs a sweep over BlueprintItemWeapon.
   /// </summary>
   internal static class FinesseWeaponRules {
@@ -28,18 +34,18 @@ namespace EitRForWotr.Mutators {
     public static BlueprintFeature EitrFinesse;
 
     public static void Apply() {
-      Main.Log.Log("FinesseWeaponRules: applying #2/#3");
+      Main.Log.Log("FinesseWeaponRules: applying #2/#3/#10 (no-prereq base feats)");
 
       EitrFinesse = FeatureConfigurator.New(FeatureName, FeatureGuid, FeatureGroup.Feat)
-          .SetDisplayName(Helpers.CreateString("EitR.Finesse.Name", "Finesse Rules (EitR)"))
+          .SetDisplayName(Helpers.CreateString("EitR.Finesse.Name", "Base Combat Feats (EitR)"))
           .SetDescription(Helpers.CreateString("EitR.Finesse.Desc",
-              "When wielding a finessable weapon, you may use Dexterity instead of " +
-              "Strength on attack rolls and combat maneuver checks — granted automatically, " +
-              "no feat slot required."))
+              "Weapon Finesse, Agile Maneuvers, and Point-Blank Shot are granted " +
+              "automatically — no feat slot required."))
           .SetIsClassFeature()
           .AddFacts(new() {
               FeatureRefs.WeaponFinesse.ToString(),
               FeatureRefs.AgileManeuvers.ToString(),
+              FeatureRefs.PointBlankShot.ToString(),
           })
           .Configure();
 
