@@ -13,17 +13,24 @@ Implementation plan: `~/.claude/plans/read-the-doc-in-humble-lemon.md`.
 
 ## Status
 
-All 11 of the original blog post's combat-feat changes are baked. Two
-known scope gaps for v0.1:
+All 12 changes from the original 2012 blog post are baked. Known gaps:
 
 - **Change #1 (weapon feats apply to fighter weapon groups)** — not
   implemented. Install [Weapon Focus Plus](https://www.nexusmods.com/pathfinderwrathoftherighteous/mods/7)
   alongside this mod for the same effect.
-- **Change #2 partial coverage** — Weapon Finesse and Agile Maneuvers are
-  granted globally, but the explicit weapon re-tagging (rapier / whip /
-  spiked-chain / elven-curve-blade / estoc / starknife → Finessable) is
-  deferred. Stock-Finessable weapons (most "light" weapons) work for
-  everyone; the listed exceptions need a tag sweep over `BlueprintItemWeapon`.
+- **Change #12 (Dodge merge) minor deviation** — the blog specifies "+1
+  dodge AC, increasing to +4 against attacks of opportunity from movement";
+  WOTR's stock Mobility component gives "+4 vs all AoOs" with no built-in
+  movement-trigger condition. Result is +5 vs all AoOs (instead of +1
+  always / +4 vs movement-AoOs only). Slightly broader than spec; would
+  need a custom AC-bonus component to fix exactly.
+
+Everything else is faithful to the blog's literal text. Notably, the
+"finesse" weapon-attribute change (#2) is already covered without extra
+work — WOTR's stock `WeaponCategoryExtension.Data` table already tags
+the rapier (the blog's only named non-light example), as well as estoc,
+elven curved blade, starknife, dueling sword, and sawtooth sabre, with
+the `Finessable` subcategory.
 
 ## Prerequisites
 

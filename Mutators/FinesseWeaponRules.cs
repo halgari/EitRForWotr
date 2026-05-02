@@ -22,10 +22,11 @@ namespace EitRForWotr.Mutators {
   /// grant, merge, or consolidation), and PBS is described as a feat-tax of
   /// the same kind. Treating it as auto-granted matches that pattern.
   ///
-  /// Known v0.1 limitation: only covers weapons WOTR already tagged with the
-  /// Finessable subcategory (most light weapons). Iantorno's spec extends the
-  /// tag to rapier/whip/spiked-chain/elven-curve-blade/estoc/starknife;
-  /// adding those tags is deferred — needs a sweep over BlueprintItemWeapon.
+  /// Note on Finessable weapons: the blog's only non-light example is the
+  /// rapier — already tagged Finessable in stock WOTR's
+  /// `WeaponCategoryExtension.Data` table, along with estoc, elven curved
+  /// blade, starknife, dueling sword, and sawtooth sabre. No weapon
+  /// re-tagging is required for blog faithfulness.
   /// </summary>
   internal static class FinesseWeaponRules {
     private const string FeatureName = "EitRFinesseRules";
