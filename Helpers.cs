@@ -36,19 +36,30 @@ namespace EitRForWotr {
             BindingFlags.NonPublic | BindingFlags.Instance);
 
     /// <summary>
-    /// Remove a feature from every BlueprintFeatureSelection, and clear any
-    /// PrerequisiteFeature / PrerequisiteFeaturesFromList references to it.
-    /// Doesn't delete the blueprint — keeps existing saves loadable.
+    /// Remove a feature from every BlueprintFeatureSelection (so it can no
+    /// longer be picked at level-up) AND clear any prerequisite references
+    /// to it. Doesn't delete the blueprint — keeps existing saves loadable.
     /// </summary>
     public static void RemoveFromAllSelections(BlueprintFeature feat) {
       if (feat == null) return;
       var guid = feat.AssetGuid;
-
       foreach (var sel in AllBlueprints<BlueprintFeatureSelection>()) {
         FilterRefArray(sel, SelectionAllFeaturesField, guid);
         FilterRefArray(sel, SelectionFeaturesField, guid);
       }
+      StripAsPrerequisite(feat);
+    }
 
+    /// <summary>
+    /// Remove all PrerequisiteFeature / PrerequisiteFeaturesFromList
+    /// references to <paramref name="feat"/> across every loaded blueprint.
+    /// Leaves the feature itself selectable (use this for changes like
+    /// "Point-Blank Shot is no longer a prereq for Precise Shot" where PBS
+    /// itself stays in the feat list).
+    /// </summary>
+    public static void StripAsPrerequisite(BlueprintFeature feat) {
+      if (feat == null) return;
+      var guid = feat.AssetGuid;
       foreach (var bp in AllBlueprints<BlueprintFeature>()) {
         var components = bp.ComponentsArray;
         if (components == null || components.Length == 0) continue;

@@ -12,8 +12,8 @@ namespace EitRForWotr.Patches {
       try {
         Main.Log.Log("BlueprintsCache.Init Postfix — applying mutators");
         Mutators.FreeCombatOptions.Apply();        // #4, #7, #11
+        Mutators.PointBlankPrereqStrip.Apply();    // #10
         // Future phases:
-        //   Mutators.PointBlankPrereqStrip.Apply();    // #10
         //   Mutators.TwoWeaponConsolidation.Apply();   // TWF tweak
         //   Mutators.ManeuverConsolidation.Apply();    // #5, #6, #8, #9
         //   Mutators.FinesseWeaponRules.Apply();       // #2, #3
