@@ -2,7 +2,6 @@ using BlueprintCore.Blueprints.CustomConfigurators.Classes;
 using BlueprintCore.Blueprints.References;
 using Kingmaker.Blueprints;
 using Kingmaker.Blueprints.Classes;
-using Kingmaker.EntitySystem.Stats;
 
 namespace EitRForWotr.Mutators {
   /// <summary>
@@ -31,6 +30,8 @@ namespace EitRForWotr.Mutators {
     public static void Apply() {
       Main.Log.Log("ManeuverConsolidation: applying #5/#6/#8/#9");
 
+      // Iantorno's blog specifies no prerequisites for Deft Maneuvers — the
+      // earlier design-doc draft suggested Dex 13, but that's not in the source.
       DeftManeuvers = FeatureConfigurator.New(DeftManeuversName, DeftManeuversGuid,
               FeatureGroup.Feat, FeatureGroup.CombatFeat)
           .SetDisplayName(Helpers.CreateString("EitR.DeftManeuvers.Name", "Deft Maneuvers"))
@@ -39,7 +40,6 @@ namespace EitRForWotr.Mutators {
               "or dirty trick combat maneuver, and you gain a +2 bonus on those checks. " +
               "Replaces Improved Trip, Improved Disarm, and Improved Dirty Trick."))
           .SetIsClassFeature()
-          .AddPrerequisiteStatValue(StatType.Dexterity, value: 13)
           .AddFacts(new() {
               FeatureRefs.ImprovedTrip.ToString(),
               FeatureRefs.ImprovedDisarm.ToString(),
@@ -50,6 +50,7 @@ namespace EitRForWotr.Mutators {
           .AddToFeatureSelection(FeatureSelectionRefs.CombatTrick.ToString())
           .Configure();
 
+      // No prereq per Iantorno's blog (same note as Deft Maneuvers).
       PowerfulManeuvers = FeatureConfigurator.New(PowerfulManeuversName, PowerfulManeuversGuid,
               FeatureGroup.Feat, FeatureGroup.CombatFeat)
           .SetDisplayName(Helpers.CreateString("EitR.PowerfulManeuvers.Name", "Powerful Maneuvers"))
@@ -58,7 +59,6 @@ namespace EitRForWotr.Mutators {
               "overrun, or sunder combat maneuver, and you gain a +2 bonus on those checks. " +
               "Replaces Improved Bull Rush, Improved Overrun, and Improved Sunder."))
           .SetIsClassFeature()
-          .AddPrerequisiteStatValue(StatType.Strength, value: 13)
           .AddFacts(new() {
               FeatureRefs.ImprovedBullRush.ToString(),
               FeatureRefs.ImprovedOverrun.ToString(),
