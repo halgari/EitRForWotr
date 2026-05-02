@@ -1,0 +1,24 @@
+## .NET / dotnet
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+project.lock.json
+project.fragment.lock.json
+artifacts/
+.vs/
+.vscode/
+.idea/
+*.swp
+
+## NuGet
+.nuget/
+packages/
+*.nupkg
+*.snupkg
+
+## OS
+.DS_Store
+Thumbs.db

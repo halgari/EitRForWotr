@@ -1,0 +1,66 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>EitRForWotr</AssemblyName>
+    <RootNamespace>EitRForWotr</RootNamespace>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>bin/</OutputPath>
+    <Nullable>disable</Nullable>
+
+    <!-- Override these on the command line if your install lives elsewhere:
+         dotnet build -p:WrathDir=/path/to/Wrath -p:ModDir=/path/to/UMM/EitRForWotr -->
+    <WrathDir Condition="'$(WrathDir)' == ''">$(HOME)/.local/share/Steam/steamapps/common/Pathfinder Second Adventure</WrathDir>
+    <!-- WOTR's UnityModManagerConfig.xml sets ModsDirectory=Mods, so mods live in <game>/Mods/<Id>/.
+         (The original design doc incorrectly pointed at the prefix's AppData/LocalLow path.) -->
+    <ModDir Condition="'$(ModDir)' == ''">$(WrathDir)/Mods/EitRForWotr</ModDir>
+  </PropertyGroup>
+
+  <!-- Game-shipped assemblies referenced by file path (not on NuGet) -->
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(WrathDir)/Wrath_Data/Managed/Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(WrathDir)/Wrath_Data/Managed/0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(WrathDir)/Wrath_Data/Managed/UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(WrathDir)/Wrath_Data/Managed/UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- net472 reference assemblies (Arch's dotnet-sdk-9.0 doesn't ship them on disk). -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.3" PrivateAssets="all" />
+
+    <!-- Fluent blueprint builders. Note: the design doc calls this "BlueprintCore"; the actual
+         NuGet id is "WW-Blueprint-Core" (the namespace inside is still BlueprintCore). -->
+    <PackageReference Include="WW-Blueprint-Core" Version="2.8.6" />
+
+    <!-- UnityModManager API (so we can build without UMM yet installed in the game). -->
+    <PackageReference Include="UnityModManager" Version="0.32.4" PrivateAssets="all" />
+  </ItemGroup>
+
+  <Target Name="Deploy" AfterTargets="Build">
+    <MakeDir Directories="$(ModDir)" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(ModDir)" />
+    <Copy SourceFiles="Info.json" DestinationFolder="$(ModDir)" />
+    <!-- BlueprintCore (from WW-Blueprint-Core) is the only NuGet runtime asset
+         we ship with the mod. UMM probes the mod folder for dependencies, so
+         this file MUST be next to EitRForWotr.dll. -->
+    <Copy SourceFiles="$(NuGetPackageRoot)ww-blueprint-core/2.8.6/lib/net472/BlueprintCore.dll" DestinationFolder="$(ModDir)" />
+    <ItemGroup>
+      <LocalizationFiles Include="Localization/*.json" />
+    </ItemGroup>
+    <Copy SourceFiles="@(LocalizationFiles)" DestinationFolder="$(ModDir)/Localization" Condition="@(LocalizationFiles) != ''" />
+    <Message Text="EitRForWotr deployed to $(ModDir)" Importance="high" />
+  </Target>
+</Project>
