@@ -82,6 +82,13 @@ dotnet build \
   -p:ModDir="/path/to/UMM/EitRForWotr"
 ```
 
+To produce a distributable zip (DLL + dependencies + Info.json, structured for UMM / ModFinder install), run:
+
+```bash
+./build.sh
+# → EitRForWotr-v<version>.zip in the repo root
+```
+
 ## Iterate loop
 
 ```bash

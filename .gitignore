@@ -22,3 +22,7 @@ packages/
 ## OS
 .DS_Store
 Thumbs.db
+
+## Release artifacts
+*.zip
+dist/
