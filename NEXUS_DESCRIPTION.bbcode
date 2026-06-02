@@ -1,0 +1,58 @@
+[size=5][b]Elephant in the Room (baked)[/b][/size]
+[i]Original 2012 ruleset, baked globally into Pathfinder: Wrath of the Righteous.[/i]
+
+[size=4][b]What this mod does[/b][/size]
+In 2012, Mathew Iantorno wrote a short blog post called [url=https://michaeliantorno.com/feat-taxes-in-pathfinder/]The Elephant in the Room: Feat Taxes in Pathfinder[/url], which proposed eliminating the dozen-or-so combat feats whose only purpose is to satisfy other feats' prerequisites or grant abilities every adventurer should have access to anyway. Power Attack. Combat Expertise. Weapon Finesse. The "Improved" maneuver feats. Mobility. The list goes on.
+
+This mod takes Iantorno's [b]original twelve combat-feat changes[/b] from the 2012 blog (the expanded PDF that came years later is out of scope) and bakes them into WOTR globally. Every character, including your PC, companions, summons, every NPC, and every monster, automatically gets the new ruleset. No respec required. No opt-in feat. No per-unit save data. Load the mod, start (or continue) playing, and the feat-tax problem is gone.
+
+[size=4][b]The changes[/b][/size]
+[list=1]
+[*][b]Power Attack, Combat Expertise, Deadly Aim[/b]: gone as feats. Granted automatically as toggleable combat options to anyone with BAB +1 or higher.
+[*][b]Weapon Finesse[/b]: gone. Everyone uses Dex on attack rolls with finesse weapons (which already includes the rapier, estoc, elven curved blade, starknife, dueling sword, and sawtooth sabre in addition to the usual light weapons).
+[*][b]Agile Maneuvers[/b]: gone. Everyone uses Dex on combat maneuver checks while wielding a finesse weapon.
+[*][b]Point-Blank Shot[/b]: gone as a feat. Its +1/+1-within-30-ft effect is granted automatically to everyone. Precise Shot is now the entry-point prerequisite for the rest of the archery feat chain.
+[*][b]Improved Trip / Disarm / Dirty Trick[/b]: gone. Replaced by a new feat, [b]Deft Maneuvers[/b], which grants no-AoO + +2 on all three. Greater Trip / Disarm / Dirty Trick now require Deft Maneuvers as their prerequisite.
+[*][b]Improved Bull Rush / Sunder / Overrun[/b]: gone. Replaced by a new feat, [b]Powerful Maneuvers[/b], which grants no-AoO + +2 on all three. Greater Bull Rush / Sunder now require Powerful Maneuvers.
+[*][b]Mobility[/b]: gone. Merged into Dodge, so taking Dodge now grants both effects.
+[*][b]Improved Two-Weapon Fighting[/b]: gone. Merged into Greater Two-Weapon Fighting, which is now takeable at Dex 17 / TWF / BAB +6 (was Dex 19 / ITWF / BAB +11) and grants both the second and third off-hand attacks at the standard -5 / -10 iterative penalties.
+[/list]
+[size=4][b]Save game compatibility[/b][/size]
+[b]Old saves are fully supported.[/b] Existing characters with feats like Power Attack, Improved Trip, or Mobility keep them; saves preserve blueprint references and the underlying feat blueprints aren't deleted. The mod's auto-grant logic runs both at unit creation and on save deserialization, so loading a pre-mod save will retroactively give every party member the new free combat options without you needing to do anything.
+
+If you decide to remove the mod later, your saves still load. Owlcat's blueprint resolver tolerates the missing GUIDs, and characters lose only the EitR-granted abilities, with no crashes or corruption.
+
+[size=4][b]Companion mods (highly recommended)[/b][/size]
+[list]
+[*][url=https://www.nexusmods.com/pathfinderwrathoftherighteous/mods/1005][b]Wrath Tactics[/b][/url]: stock WOTR enemies will [i]have[/i] the new free Power Attack / Combat Expertise / Deadly Aim toggles available, but they won't actually use them intelligently. Wrath Tactics teaches enemy AI to toggle these activatables based on the situation. Strongly recommended for anyone playing on Core difficulty or higher.
+[*][url=https://www.nexusmods.com/pathfinderwrathoftherighteous/mods/7][b]Weapon Focus Plus[/b][/url]: Iantorno's first proposed change ("weapon feats apply to fighter weapon groups instead of single weapons") is intentionally left out of this mod. Weapon Focus Plus already does it well and has been battle-tested for years. Install it for the missing piece.
+[/list]
+[size=4][b]Known limitation[/b][/size]
+The Mobility/Dodge merge gives [b]+1 dodge AC always, +5 vs all attacks of opportunity[/b]. Iantorno's original spec called for "+1 always, +4 against AoOs from movement specifically." Stock WOTR has no built-in "AoO from movement" condition, so distinguishing movement-triggered AoOs from cast-in-melee AoOs would require a custom mechanic. The current behavior matches what stock WOTR already gives a character who takes both Dodge and Mobility. The two feat slots stay free for other choices.
+
+[size=4][b]Installation[/b][/size]
+[list=1]
+[*]Install [url=https://www.nexusmods.com/site/mods/21][b]UnityModManager[/b][/url] (0.27 or later) into Pathfinder: Wrath of the Righteous if you haven't already.
+[*]Download the latest [b]EitRForWotr-vX.Y.Z.zip[/b] from the Files tab.
+[*]Either open UnityModManager (Ctrl-F10 in-game) and drag the zip onto the Mods tab's Install panel, or extract the inner [b]EitRForWotr/[/b] folder into [b]<your game folder>/Mods/[/b].
+[*]Launch the game. The mod applies its rules at startup; no in-game configuration is needed.
+[/list]
+The zip bundles the WW-Blueprint-Core dependency so you don't need to install anything else.
+
+[size=4][b]Compatibility[/b][/size]
+[list]
+[*][b]Game version:[/b] built against Wrath 2.7.x. Should work on any 2.5+ version; report issues if you see them.
+[*][b]TabletopTweaks-Base / Bag of Tricks / Toybox / etc.[/b]: should be compatible. This mod only mutates a small set of specific blueprints, and doesn't touch class progressions, spells, or items beyond the explicitly listed feat changes.
+[*][b]DLC content[/b]: the prereq-stripping and selection-list mutations enumerate every loaded blueprint, so DLC feats and selections are covered automatically.
+[*][b]Mythic feats[/b]: out of scope. The mythic versions of Power Attack, Deadly Aim, Weapon Finesse, etc. are not modified.
+[/list]
+[size=4][b]Source & contributing[/b][/size]
+Open source, MIT-style. [url=https://github.com/halgari/EitRForWotr]github.com/halgari/EitRForWotr[/url] for issues and PRs.
+
+[size=4][b]Credits[/b][/size]
+[list]
+[*][b]Mathew Iantorno[/b]: original 2012 [i]Elephant in the Room[/i] blog post that defines the ruleset this mod implements.
+[*][b]WittleWolfie[/b]: [url=https://github.com/WittleWolfie/WW-Blueprint-Core]WW-Blueprint-Core[/url], the fluent blueprint-modification library that makes this kind of mod tractable to write.
+[*][b]Vek17[/b]: TabletopTweaks-Base, an invaluable read-along reference for "how do you do X correctly in WOTR" answers.
+[*][b]The Owlcat WOTR Modding Discord[/b]: community knowledge that fills in the gaps no documentation covers.
+[/list]

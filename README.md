@@ -8,9 +8,6 @@ Applies globally to player, companions, summons, and NPCs/enemies.
 Companion-mod recommendation for smarter enemy AI on the new free combat options:
 [Wrath Tactics](https://www.nexusmods.com/pathfinderwrathoftherighteous/mods/1005).
 
-Design doc: `~/Downloads/EitR-WOTR-Mod-Guide.md` (local).
-Implementation plan: `~/.claude/plans/read-the-doc-in-humble-lemon.md`.
-
 ## Status
 
 All 12 changes from the original 2012 blog post are baked. Known gaps:
@@ -87,30 +84,6 @@ To produce a distributable zip (DLL + dependencies + Info.json, structured for U
 ```bash
 ./build.sh
 # → EitRForWotr-v<version>.zip in the repo root
-```
-
-## Iterate loop
-
-```bash
-# Tail the game log
-tail -F "$HOME/.local/share/Steam/steamapps/compatdata/1184370/pfx/drive_c/users/steamuser/AppData/LocalLow/Owlcat Games/Pathfinder Wrath Of The Righteous/Player.log" \
-  | grep -i eitr
-```
-
-In WOTR, `Ctrl-F10` opens the UMM overlay → Mods tab → confirm `EitRForWotr` is Active. Hit **Reload** there to re-load the DLL after a rebuild. Patches that hook `BlueprintsCache.Init` only re-fire on a save reload.
-
-## Project layout
-
-```
-.
-├── EitRForWotr.csproj          MSBuild project
-├── Info.json                    UMM manifest
-├── Main.cs                      Entry point + Harmony bootstrap
-├── Patches/
-│   └── BlueprintsCache_Init_Patch.cs   Postfix; mutators dispatched here
-├── Mutators/                    One file per EitR change family (added per phase)
-├── NewBlueprints/               Deft Maneuvers, Powerful Maneuvers (Phase 4c)
-└── Localization/enGB.json       Display strings
 ```
 
 ## Scope

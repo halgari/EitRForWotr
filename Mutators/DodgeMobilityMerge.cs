@@ -29,6 +29,9 @@ namespace EitRForWotr.Mutators {
       Helpers.RedirectPrerequisite(mobility, dodge);
       Helpers.RemoveFromAllSelections(mobility);
 
+      Patches.PrerequisiteFeature_Check_Patch.BypassedPrereqs.Add(mobility.AssetGuid);
+      Patches.PrerequisiteFeature_Check_Patch.Redirects[mobility.AssetGuid] = dodge;
+
       Main.Log.Log("DodgeMobilityMerge: Dodge now grants Mobility; Mobility stripped from selections");
     }
   }

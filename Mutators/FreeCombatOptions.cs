@@ -53,6 +53,11 @@ namespace EitRForWotr.Mutators {
       Helpers.RemoveFromAllSelections(Helpers.Get<BlueprintFeature>(FeatureRefs.CombatExpertiseFeature.ToString()));
       Helpers.RemoveFromAllSelections(Helpers.Get<BlueprintFeature>(FeatureRefs.DeadlyAimFeature.ToString()));
 
+      var bypassSet = Patches.PrerequisiteFeature_Check_Patch.BypassedPrereqs;
+      bypassSet.Add(Helpers.Get<BlueprintFeature>(FeatureRefs.PowerAttackFeature.ToString()).AssetGuid);
+      bypassSet.Add(Helpers.Get<BlueprintFeature>(FeatureRefs.CombatExpertiseFeature.ToString()).AssetGuid);
+      bypassSet.Add(Helpers.Get<BlueprintFeature>(FeatureRefs.DeadlyAimFeature.ToString()).AssetGuid);
+
       Main.Log.Log("FreeCombatOptions: stripped PA/CE/DA from all selection lists");
     }
   }

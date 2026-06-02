@@ -21,6 +21,7 @@ namespace EitRForWotr.Mutators {
         return;
       }
       Helpers.RemoveFromAllSelections(pbs);
+      Patches.PrerequisiteFeature_Check_Patch.BypassedPrereqs.Add(pbs.AssetGuid);
       Main.Log.Log("PointBlankPrereqStrip: stripped PBS from selections + prerequisites (#10)");
     }
   }

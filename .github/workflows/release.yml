@@ -1,0 +1,97 @@
+name: Release
+
+# Builds the UMM-ready zip and publishes it to a GitHub Release and to
+# Nexus Mods (mod 1013, "Elephant in the Room (baked)").
+#
+# Trigger by pushing a version tag, e.g.:
+#   git tag v0.1.1 && git push origin v0.1.1
+# The tag is informational; the file version comes from Info.json (single
+# source of truth). You can also run it by hand from the Actions tab.
+#
+# ─────────────────────────────────────────────────────────────────────────
+# REQUIRED ONE-TIME SETUP (all done ✓):
+#   secret  NEXUS_API_KEY     — Nexus Mods API key
+#   secret  MANAGED_DLLS_KEY  — SSH private key matching the read-only deploy key
+#                               on the PRIVATE repo halgari/wrath-managed, which
+#                               holds the 4 Owlcat game DLLs this build references.
+#                               They are copyrighted and cannot live in this public
+#                               repo, and CI has no game install — so the workflow
+#                               checks them out from that private repo.
+#                               (The default GITHUB_TOKEN can't reach another repo,
+#                               even one you own, hence the deploy key.)
+# ─────────────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed to create the GitHub Release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      # The build references game-shipped assemblies by file path:
+      #   Assembly-CSharp.dll, 0Harmony.dll, UnityEngine.dll,
+      #   UnityEngine.CoreModule.dll  (from <Wrath>/Wrath_Data/Managed/).
+      # They are not on NuGet and are not redistributable, so they live in the
+      # private repo halgari/wrath-managed, checked out here via a read-only
+      # deploy key (the default GITHUB_TOKEN can't reach another repo).
+      - name: Check out game assemblies (private)
+        uses: actions/checkout@v4
+        with:
+          repository: halgari/wrath-managed
+          ssh-key: ${{ secrets.MANAGED_DLLS_KEY }}
+          path: wrath-managed
+
+      - name: Stage game assemblies
+        run: |
+          set -euo pipefail
+          MANAGED="$RUNNER_TEMP/wrath/Wrath_Data/Managed"
+          mkdir -p "$MANAGED"
+          for dll in Assembly-CSharp.dll 0Harmony.dll UnityEngine.dll UnityEngine.CoreModule.dll; do
+            cp "wrath-managed/$dll" "$MANAGED/" \
+              || { echo "::error::missing $dll in halgari/wrath-managed"; exit 1; }
+          done
+          echo "Staged:"; ls -1 "$MANAGED"
+
+      - name: Read version from Info.json
+        id: ver
+        run: echo "version=$(python3 -c "import json;print(json.load(open('Info.json'))['Version'])")" >> "$GITHUB_OUTPUT"
+
+      - name: Build release zip
+        env:
+          # build.sh runs `dotnet build`; MSBuild picks up WrathDir from the
+          # environment, so the csproj resolves the game DLLs we just restored.
+          WrathDir: ${{ runner.temp }}/wrath
+        run: |
+          chmod +x build.sh
+          ./build.sh
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda  # v2.0.8
+        with:
+          files: EitRForWotr-v${{ steps.ver.outputs.version }}.zip
+          generate_release_notes: true
+
+      - name: Upload to Nexus Mods
+        uses: Nexus-Mods/upload-action@0bf670d75d46988c176c9bfacc94ca0144e0fe3f  # v1.0.0-beta.7
+        with:
+          api_key: ${{ secrets.NEXUS_API_KEY }}
+          file_group_id: 7378760
+          filename: EitRForWotr-v${{ steps.ver.outputs.version }}.zip
+          display_name: EitRForWotr V${{ steps.ver.outputs.version }}
+          version: ${{ steps.ver.outputs.version }}
+          file_category: main
+          archive_existing_file: true

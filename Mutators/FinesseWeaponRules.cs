@@ -61,8 +61,14 @@ namespace EitRForWotr.Mutators {
       // Strip Weapon Finesse + Agile Maneuvers from every selection list and
       // any prereq chain (Agile Maneuvers happens to require Weapon Finesse —
       // both go).
-      Helpers.RemoveFromAllSelections(Helpers.Get<BlueprintFeature>(FeatureRefs.WeaponFinesse.ToString()));
-      Helpers.RemoveFromAllSelections(Helpers.Get<BlueprintFeature>(FeatureRefs.AgileManeuvers.ToString()));
+      var wf = Helpers.Get<BlueprintFeature>(FeatureRefs.WeaponFinesse.ToString());
+      var am = Helpers.Get<BlueprintFeature>(FeatureRefs.AgileManeuvers.ToString());
+      Helpers.RemoveFromAllSelections(wf);
+      Helpers.RemoveFromAllSelections(am);
+
+      var bypassSet = Patches.PrerequisiteFeature_Check_Patch.BypassedPrereqs;
+      bypassSet.Add(wf.AssetGuid);
+      bypassSet.Add(am.AssetGuid);
 
       Main.Log.Log("FinesseWeaponRules: stripped Weapon Finesse + Agile Maneuvers from all selection lists");
     }

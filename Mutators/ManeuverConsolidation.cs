@@ -92,15 +92,29 @@ namespace EitRForWotr.Mutators {
       }
 
       // Strip all Improved-X feats from selections (existing characters keep them).
+      var bypassSet = Patches.PrerequisiteFeature_Check_Patch.BypassedPrereqs;
+      var redirects = Patches.PrerequisiteFeature_Check_Patch.Redirects;
+
       foreach (var guid in new[] {
           FeatureRefs.ImprovedTrip.ToString(),
           FeatureRefs.ImprovedDisarm.ToString(),
           FeatureRefs.ImprovedDirtyTrick.ToString(),
+      }) {
+        var feat = Helpers.Get<BlueprintFeature>(guid);
+        Helpers.RemoveFromAllSelections(feat);
+        bypassSet.Add(feat.AssetGuid);
+        redirects[feat.AssetGuid] = DeftManeuvers;
+      }
+
+      foreach (var guid in new[] {
           FeatureRefs.ImprovedBullRush.ToString(),
           FeatureRefs.ImprovedOverrun.ToString(),
           FeatureRefs.ImprovedSunder.ToString(),
       }) {
-        Helpers.RemoveFromAllSelections(Helpers.Get<BlueprintFeature>(guid));
+        var feat = Helpers.Get<BlueprintFeature>(guid);
+        Helpers.RemoveFromAllSelections(feat);
+        bypassSet.Add(feat.AssetGuid);
+        redirects[feat.AssetGuid] = PowerfulManeuvers;
       }
 
       Main.Log.Log("ManeuverConsolidation: created Deft + Powerful Maneuvers; redirected Greater-X prereqs; stripped Improved-X");
