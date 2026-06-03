@@ -20,7 +20,7 @@ This mod takes Iantorno's [b]original twelve combat-feat changes[/b] from the 20
 [size=4][b]Save game compatibility[/b][/size]
 [b]Old saves are fully supported.[/b] Existing characters with feats like Power Attack, Improved Trip, or Mobility keep them; saves preserve blueprint references and the underlying feat blueprints aren't deleted. The mod's auto-grant logic runs both at unit creation and on save deserialization, so loading a pre-mod save will retroactively give every party member the new free combat options without you needing to do anything.
 
-If you decide to remove the mod later, your saves still load. Owlcat's blueprint resolver tolerates the missing GUIDs, and characters lose only the EitR-granted abilities, with no crashes or corruption.
+[b]Removing the mod after playing with it is [i]not[/i] save-safe.[/b] This mod adds new blueprints (the EitR free-combat-options feature, Deft Maneuvers, Powerful Maneuvers, the base-combat-feats grant) and attaches them to every unit. Once the mod is gone those GUIDs become unresolvable, and saves that reference them can fail to load or behave unpredictably. If you want to try the mod, branch your saves first.
 
 [size=4][b]Companion mods (highly recommended)[/b][/size]
 [list]
