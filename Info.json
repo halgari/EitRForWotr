@@ -2,7 +2,7 @@
   "Id": "EitRForWotr",
   "DisplayName": "Elephant in the Room (baked)",
   "Author": "tbaldridge",
-  "Version": "1.0.1",
+  "Version": "1.0.2",
   "ManagerVersion": "0.27.0",
   "AssemblyName": "EitRForWotr.dll",
   "EntryMethod": "EitRForWotr.Main.Load",
