@@ -21,6 +21,15 @@ All 12 changes from the original 2012 blog post are baked. Known gaps:
   movement-trigger condition. Result is +5 vs all AoOs (instead of +1
   always / +4 vs movement-AoOs only). Slightly broader than spec; would
   need a custom AC-bonus component to fix exactly.
+- **TWF — Improved Two-Weapon Fighting as a prerequisite.** The blog says
+  "Gone. Merged with Greater Two-Weapon Fighting" but is silent on what
+  to do with features that previously *required* ITWF. This mod
+  **redirects** any `PrerequisiteFeature(ITWF)` to `PrerequisiteFeature(TWF)`
+  rather than deleting it. Rationale: it matches how the blog handles
+  other consolidations (Mobility prereqs become Dodge; Improved-X prereqs
+  become Deft/Powerful Maneuvers) and the mod's own pattern for
+  changes #5/#6/#8/#9/#12. In stock WOTR only Greater TWF appears to
+  list ITWF as a hard prereq, so this is usually a no-op in practice.
 
 Everything else is faithful to the blog's literal text. Notably, the
 "finesse" weapon-attribute change (#2) is already covered without extra

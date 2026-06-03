@@ -1,7 +1,7 @@
 using System.Linq;
 using BlueprintCore.Blueprints.CustomConfigurators.Classes;
 using BlueprintCore.Blueprints.References;
-using Kingmaker.Blueprints;
+using BlueprintCore.Utils;
 using Kingmaker.Blueprints.Classes;
 
 namespace EitRForWotr.Mutators {
@@ -38,8 +38,8 @@ namespace EitRForWotr.Mutators {
       Main.Log.Log("FinesseWeaponRules: applying #2/#3/#10 (no-prereq base feats)");
 
       EitrFinesse = FeatureConfigurator.New(FeatureName, FeatureGuid, FeatureGroup.Feat)
-          .SetDisplayName(Helpers.CreateString("EitR.Finesse.Name", "Base Combat Feats (EitR)"))
-          .SetDescription(Helpers.CreateString("EitR.Finesse.Desc",
+          .SetDisplayName(LocalizationTool.CreateString("EitR.Finesse.Name", "Base Combat Feats (EitR)"))
+          .SetDescription(LocalizationTool.CreateString("EitR.Finesse.Desc",
               "Weapon Finesse, Agile Maneuvers, and Point-Blank Shot are granted " +
               "automatically — no feat slot required."))
           .SetIsClassFeature()
@@ -51,7 +51,7 @@ namespace EitRForWotr.Mutators {
           .Configure();
 
       // Inject into level 1 of BasicFeatsProgression (every PC + most NPCs).
-      var basicProg = Helpers.Get<BlueprintProgression>(ProgressionRefs.BasicFeatsProgression.ToString());
+      var basicProg = ProgressionRefs.BasicFeatsProgression.Reference.Get();
       if (basicProg?.LevelEntries != null && basicProg.LevelEntries.Length > 0) {
         var lvl1 = basicProg.LevelEntries[0];
         lvl1.SetFeatures(lvl1.Features.Append(EitrFinesse));
@@ -61,8 +61,8 @@ namespace EitRForWotr.Mutators {
       // Strip Weapon Finesse + Agile Maneuvers from every selection list and
       // any prereq chain (Agile Maneuvers happens to require Weapon Finesse —
       // both go).
-      var wf = Helpers.Get<BlueprintFeature>(FeatureRefs.WeaponFinesse.ToString());
-      var am = Helpers.Get<BlueprintFeature>(FeatureRefs.AgileManeuvers.ToString());
+      var wf = FeatureRefs.WeaponFinesse.Reference.Get();
+      var am = FeatureRefs.AgileManeuvers.Reference.Get();
       Helpers.RemoveFromAllSelections(wf);
       Helpers.RemoveFromAllSelections(am);
 

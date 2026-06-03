@@ -1,17 +1,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using BlueprintCore.Blueprints.CustomConfigurators.Classes;
+using BlueprintCore.Blueprints.CustomConfigurators.Classes.Selection;
 using Kingmaker.Blueprints;
 using Kingmaker.Blueprints.Classes;
 using Kingmaker.Blueprints.Classes.Prerequisites;
 using Kingmaker.Blueprints.Classes.Selection;
-using Kingmaker.Localization;
+using Kingmaker.UnitLogic.FactLogic;
 
 namespace EitRForWotr {
+  /// <summary>
+  /// Thin wrappers around things BlueprintCore doesn't already cover. Anything
+  /// BlueprintCore exposes (blueprint lookup via Refs.X.Reference.Get(),
+  /// LocalizationTool.CreateString, FeatureSelectionConfigurator,
+  /// RemoveComponents, etc.) is used directly at call sites.
+  /// </summary>
   internal static class Helpers {
-    public static T Get<T>(string guid) where T : BlueprintScriptableObject =>
-        ResourcesLibrary.TryGetBlueprint<T>(BlueprintGuid.Parse(guid));
-
     public static IEnumerable<T> AllBlueprints<T>() where T : SimpleBlueprint {
       var result = new List<T>();
       ResourcesLibrary.BlueprintsCache.ForEachLoaded((_, bp) => {
@@ -20,19 +25,24 @@ namespace EitRForWotr {
       return result;
     }
 
-    public static LocalizedString CreateString(string key, string value) {
-      LocalizationManager.CurrentPack?.PutString(key, value);
-      return new LocalizedString { Key = key };
-    }
-
+    // Private game fields with no public setter. BlueprintCore configurators
+    // cover m_AllFeatures via RemoveFromAllFeatures but don't expose
+    // m_Features, PrerequisiteFeature.m_Feature, PrerequisiteFeaturesFromList.m_Features,
+    // or AddFacts.m_Facts. These FieldInfos are the canonical reflection bridges.
     private static readonly FieldInfo SelectionAllFeaturesField =
         typeof(BlueprintFeatureSelection).GetField("m_AllFeatures",
             BindingFlags.NonPublic | BindingFlags.Instance);
     private static readonly FieldInfo SelectionFeaturesField =
         typeof(BlueprintFeatureSelection).GetField("m_Features",
             BindingFlags.NonPublic | BindingFlags.Instance);
+    private static readonly FieldInfo PrereqFeatureField =
+        typeof(PrerequisiteFeature).GetField("m_Feature",
+            BindingFlags.NonPublic | BindingFlags.Instance);
     private static readonly FieldInfo PrereqListFeaturesField =
         typeof(PrerequisiteFeaturesFromList).GetField("m_Features",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+    private static readonly FieldInfo AddFactsArrayField =
+        typeof(AddFacts).GetField("m_Facts",
             BindingFlags.NonPublic | BindingFlags.Instance);
 
     /// <summary>
@@ -44,15 +54,28 @@ namespace EitRForWotr {
       if (feat == null) return;
       var guid = feat.AssetGuid;
       foreach (var sel in AllBlueprints<BlueprintFeatureSelection>()) {
-        FilterRefArray(sel, SelectionAllFeaturesField, guid);
-        FilterRefArray(sel, SelectionFeaturesField, guid);
+        var allRefs = (BlueprintFeatureReference[])SelectionAllFeaturesField.GetValue(sel);
+        bool inAll = allRefs?.Any(r => r != null && r.Guid == guid) ?? false;
+
+        var featRefs = (BlueprintFeatureReference[])SelectionFeaturesField.GetValue(sel);
+        bool inFeats = featRefs?.Any(r => r != null && r.Guid == guid) ?? false;
+
+        if (inAll) {
+          FeatureSelectionConfigurator.For(sel.ToReference<BlueprintFeatureSelectionReference>())
+              .RemoveFromAllFeatures(r => r != null && r.Guid == guid)
+              .Configure();
+        }
+        if (inFeats) {
+          var filtered = featRefs.Where(r => r == null || r.Guid != guid).ToArray();
+          SelectionFeaturesField.SetValue(sel, filtered);
+        }
       }
       StripAsPrerequisite(feat);
     }
 
     /// <summary>
     /// Remove all PrerequisiteFeature / PrerequisiteFeaturesFromList
-    /// references to <paramref name="feat"/> across every loaded blueprint.
+    /// references to <paramref name="feat"/> across every loaded feature.
     /// Leaves the feature itself selectable (use this for changes like
     /// "Point-Blank Shot is no longer a prereq for Precise Shot" where PBS
     /// itself stays in the feat list).
@@ -63,37 +86,42 @@ namespace EitRForWotr {
       foreach (var bp in AllBlueprints<BlueprintFeature>()) {
         var components = bp.ComponentsArray;
         if (components == null || components.Length == 0) continue;
-        var keep = new List<BlueprintComponent>(components.Length);
-        bool changed = false;
+        bool touched = false;
         foreach (var c in components) {
-          if (c is PrerequisiteFeature pr && pr.Feature == feat) {
-            changed = true;
-            continue;
+          if (c is PrerequisiteFeature pr && pr.Feature == feat) { touched = true; break; }
+          if (c is PrerequisiteFeaturesFromList prList && ListHasFeature(prList, guid)) {
+            touched = true; break;
           }
-          if (c is PrerequisiteFeaturesFromList prList) {
-            var refs = (BlueprintFeatureReference[])PrereqListFeaturesField.GetValue(prList);
-            if (refs != null && refs.Any(r => r != null && r.Guid == guid)) {
-              var filtered = refs.Where(r => r == null || r.Guid != guid).ToArray();
-              if (filtered.Length == 0) { changed = true; continue; }
-              PrereqListFeaturesField.SetValue(prList, filtered);
-            }
-          }
-          keep.Add(c);
         }
-        if (changed) bp.ComponentsArray = keep.ToArray();
+        if (!touched) continue;
+
+        FeatureConfigurator.For(bp.ToReference<BlueprintFeatureReference>())
+            .RemoveComponents(c =>
+                (c is PrerequisiteFeature pr && pr.Feature == feat)
+                || (c is PrerequisiteFeaturesFromList prList
+                    && ListIsAllFeature(prList, guid)))
+            .EditComponents<PrerequisiteFeaturesFromList>(
+                prList => {
+                  var refs = (BlueprintFeatureReference[])PrereqListFeaturesField.GetValue(prList);
+                  var filtered = refs.Where(r => r == null || r.Guid != guid).ToArray();
+                  PrereqListFeaturesField.SetValue(prList, filtered);
+                },
+                prList => ListHasFeature(prList, guid) && !ListIsAllFeature(prList, guid))
+            .Configure();
       }
     }
 
-    private static void FilterRefArray(BlueprintFeatureSelection sel, FieldInfo field, BlueprintGuid guid) {
-      var refs = (BlueprintFeatureReference[])field.GetValue(sel);
-      if (refs == null || refs.Length == 0) return;
-      var filtered = refs.Where(r => r == null || r.Guid != guid).ToArray();
-      if (filtered.Length != refs.Length) field.SetValue(sel, filtered);
+    private static bool ListHasFeature(PrerequisiteFeaturesFromList prList, BlueprintGuid guid) {
+      var refs = (BlueprintFeatureReference[])PrereqListFeaturesField.GetValue(prList);
+      return refs != null && refs.Any(r => r != null && r.Guid == guid);
     }
 
-    private static readonly FieldInfo PrereqFeatureField =
-        typeof(PrerequisiteFeature).GetField("m_Feature",
-            BindingFlags.NonPublic | BindingFlags.Instance);
+    private static bool ListIsAllFeature(PrerequisiteFeaturesFromList prList, BlueprintGuid guid) {
+      var refs = (BlueprintFeatureReference[])PrereqListFeaturesField.GetValue(prList);
+      return refs != null
+             && refs.Any(r => r != null && r.Guid == guid)
+             && refs.All(r => r == null || r.Guid == guid);
+    }
 
     /// <summary>
     /// For every blueprint, replace any PrerequisiteFeature pointing at
@@ -106,13 +134,24 @@ namespace EitRForWotr {
       var newRef = newFeat.ToReference<BlueprintFeatureReference>();
       foreach (var bp in AllBlueprints<BlueprintFeature>()) {
         var components = bp.ComponentsArray;
-        if (components == null) continue;
-        foreach (var c in components) {
-          if (c is PrerequisiteFeature pr && pr.Feature == oldFeat) {
-            PrereqFeatureField.SetValue(pr, newRef);
-          }
-        }
+        if (components == null || components.Length == 0) continue;
+        if (!components.Any(c => c is PrerequisiteFeature pr && pr.Feature == oldFeat)) continue;
+        FeatureConfigurator.For(bp.ToReference<BlueprintFeatureReference>())
+            .EditComponents<PrerequisiteFeature>(
+                pr => PrereqFeatureField.SetValue(pr, newRef),
+                pr => pr.Feature == oldFeat)
+            .Configure();
       }
+    }
+
+    /// <summary>
+    /// Append a fact reference to an AddFacts component. Backing field
+    /// AddFacts.m_Facts has no public setter in the game code.
+    /// </summary>
+    public static void AppendFact(AddFacts addFacts, BlueprintUnitFactReference factRef) {
+      var existing = (BlueprintUnitFactReference[])AddFactsArrayField.GetValue(addFacts);
+      var augmented = (existing ?? new BlueprintUnitFactReference[0]).Concat(new[] { factRef }).ToArray();
+      AddFactsArrayField.SetValue(addFacts, augmented);
     }
   }
 }
