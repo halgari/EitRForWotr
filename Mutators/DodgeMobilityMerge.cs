@@ -24,8 +24,8 @@ namespace EitRForWotr.Mutators {
           .AddFacts(new() { FeatureRefs.Mobility.ToString() })
           .Configure();
 
-      var mobility = Helpers.Get<BlueprintFeature>(FeatureRefs.Mobility.ToString());
-      var dodge = Helpers.Get<BlueprintFeature>(FeatureRefs.Dodge.ToString());
+      var mobility = FeatureRefs.Mobility.Reference.Get();
+      var dodge = FeatureRefs.Dodge.Reference.Get();
       Helpers.RedirectPrerequisite(mobility, dodge);
       Helpers.RemoveFromAllSelections(mobility);
 

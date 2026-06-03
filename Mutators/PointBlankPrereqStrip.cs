@@ -15,7 +15,7 @@ namespace EitRForWotr.Mutators {
   /// </summary>
   internal static class PointBlankPrereqStrip {
     public static void Apply() {
-      var pbs = Helpers.Get<BlueprintFeature>(FeatureRefs.PointBlankShot.ToString());
+      var pbs = FeatureRefs.PointBlankShot.Reference.Get();
       if (pbs == null) {
         Main.Log.Error("PointBlankPrereqStrip: PointBlankShot blueprint not found");
         return;
