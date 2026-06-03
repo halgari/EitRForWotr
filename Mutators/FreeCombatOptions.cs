@@ -1,7 +1,7 @@
 using System.Linq;
 using BlueprintCore.Blueprints.CustomConfigurators.Classes;
 using BlueprintCore.Blueprints.References;
-using Kingmaker.Blueprints;
+using BlueprintCore.Utils;
 using Kingmaker.Blueprints.Classes;
 using Kingmaker.EntitySystem.Stats;
 
@@ -23,12 +23,11 @@ namespace EitRForWotr.Mutators {
       Main.Log.Log("FreeCombatOptions: applying #4/#7/#11");
 
       EitrFreebies = FeatureConfigurator.New(FeatureName, FeatureGuid, FeatureGroup.Feat)
-          .SetDisplayName(Helpers.CreateString("EitR.FreeOptions.Name", "Combat Options (EitR)"))
-          .SetDescription(Helpers.CreateString("EitR.FreeOptions.Desc",
+          .SetDisplayName(LocalizationTool.CreateString("EitR.FreeOptions.Name", "Combat Options (EitR)"))
+          .SetDescription(LocalizationTool.CreateString("EitR.FreeOptions.Desc",
               "Power Attack, Combat Expertise, and Deadly Aim are free combat options at " +
               "base attack bonus +1 — granted automatically, no feat slot required."))
           .SetIsClassFeature()
-          .SetHideInUI(false)
           .AddPrerequisiteStatValue(StatType.BaseAttackBonus, value: 1)
           .AddFacts(new() {
               ActivatableAbilityRefs.PowerAttackToggleAbility.ToString(),
@@ -38,7 +37,7 @@ namespace EitRForWotr.Mutators {
           .Configure();
 
       // Inject into level 1 of BasicFeatsProgression (every PC + most NPCs).
-      var basicProg = Helpers.Get<BlueprintProgression>(ProgressionRefs.BasicFeatsProgression.ToString());
+      var basicProg = ProgressionRefs.BasicFeatsProgression.Reference.Get();
       if (basicProg?.LevelEntries != null && basicProg.LevelEntries.Length > 0) {
         var lvl1 = basicProg.LevelEntries[0];
         lvl1.SetFeatures(lvl1.Features.Append(EitrFreebies));
@@ -49,14 +48,17 @@ namespace EitRForWotr.Mutators {
 
       // Strip the feat wrappers from every selection list. PA/CE/DA can no
       // longer be taken as feats; their activatables come from EitrFreebies.
-      Helpers.RemoveFromAllSelections(Helpers.Get<BlueprintFeature>(FeatureRefs.PowerAttackFeature.ToString()));
-      Helpers.RemoveFromAllSelections(Helpers.Get<BlueprintFeature>(FeatureRefs.CombatExpertiseFeature.ToString()));
-      Helpers.RemoveFromAllSelections(Helpers.Get<BlueprintFeature>(FeatureRefs.DeadlyAimFeature.ToString()));
+      var pa = FeatureRefs.PowerAttackFeature.Reference.Get();
+      var ce = FeatureRefs.CombatExpertiseFeature.Reference.Get();
+      var da = FeatureRefs.DeadlyAimFeature.Reference.Get();
+      Helpers.RemoveFromAllSelections(pa);
+      Helpers.RemoveFromAllSelections(ce);
+      Helpers.RemoveFromAllSelections(da);
 
       var bypassSet = Patches.PrerequisiteFeature_Check_Patch.BypassedPrereqs;
-      bypassSet.Add(Helpers.Get<BlueprintFeature>(FeatureRefs.PowerAttackFeature.ToString()).AssetGuid);
-      bypassSet.Add(Helpers.Get<BlueprintFeature>(FeatureRefs.CombatExpertiseFeature.ToString()).AssetGuid);
-      bypassSet.Add(Helpers.Get<BlueprintFeature>(FeatureRefs.DeadlyAimFeature.ToString()).AssetGuid);
+      bypassSet.Add(pa.AssetGuid);
+      bypassSet.Add(ce.AssetGuid);
+      bypassSet.Add(da.AssetGuid);
 
       Main.Log.Log("FreeCombatOptions: stripped PA/CE/DA from all selection lists");
     }
