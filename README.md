@@ -101,7 +101,7 @@ Original 2012 blog post only:
 
 1. Martial Mastery (weapon-group feats)
 2. Weapon Finesse → automatic on finesse weapons
-3. Agile Maneuvers → Dex on CMB w/ finesse weapons
+3. Agile Maneuvers → better of Str or Dex on CMB
 4. Combat Expertise → free at BAB +1
 5. Improved Trip/Disarm/Dirty Trick/Feint/Reposition/Steal → Deft Maneuvers
 6. Deft Maneuvers (new)

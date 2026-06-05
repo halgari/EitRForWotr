@@ -3,18 +3,24 @@ using BlueprintCore.Blueprints.CustomConfigurators.Classes;
 using BlueprintCore.Blueprints.References;
 using BlueprintCore.Utils;
 using Kingmaker.Blueprints.Classes;
+using Kingmaker.Designers.Mechanics.Facts;
+using Kingmaker.EntitySystem.Stats;
+using Kingmaker.PubSubSystem;
+using Kingmaker.RuleSystem.Rules;
+using Kingmaker.UnitLogic;
 
 namespace EitRForWotr.Mutators {
   /// <summary>
   /// EitR changes #2 + #3 + #10 — globally-granted, no-prereq base feats.
   ///
   /// • Weapon Finesse: Dex-on-attack with Finessable weapons (#2)
-  /// • Agile Maneuvers: Dex-on-CMB with Finessable weapons (#3)
+  /// • Agile Maneuvers: best of Str/Dex on CMB (#3)
   /// • Point-Blank Shot: +1 to-hit / +1 damage on ranged within 30 ft (#10)
   ///
-  /// Implementation: WOTR's stock blueprints for these three feats already
-  /// implement the mechanical effects. We just grant them as facts globally
-  /// and strip them from selections (no Harmony patch needed).
+  /// Implementation: WOTR's stock blueprints for Weapon Finesse and Point-
+  /// Blank Shot already implement the mechanical effects. Agile Maneuvers is
+  /// patched so it does not replace a higher Strength CMB bonus with Dex.
+  /// We grant the three facts globally and strip them from selections.
   ///
   /// Note on PBS: the blog says "Gone. Precise Shot replaces it as a
   /// prerequisite…" — silent on what happens to the +1/+1 effect. Reading
@@ -36,6 +42,11 @@ namespace EitRForWotr.Mutators {
 
     public static void Apply() {
       Main.Log.Log("FinesseWeaponRules: applying #2/#3/#10 (no-prereq base feats)");
+
+      FeatureConfigurator.For(FeatureRefs.AgileManeuvers)
+          .RemoveComponents(c => c is ReplaceCombatManeuverStat)
+          .AddComponent<UseBestStatForCombatManeuvers>()
+          .Configure();
 
       EitrFinesse = FeatureConfigurator.New(FeatureName, FeatureGuid, FeatureGroup.Feat)
           .SetDisplayName(LocalizationTool.CreateString("EitR.Finesse.Name", "Base Combat Feats (EitR)"))
@@ -71,6 +82,25 @@ namespace EitRForWotr.Mutators {
       bypassSet.Add(am.AssetGuid);
 
       Main.Log.Log("FinesseWeaponRules: stripped Weapon Finesse + Agile Maneuvers from all selection lists");
+    }
+
+    private class UseBestStatForCombatManeuvers
+        : UnitFactComponentDelegate, IInitiatorRulebookHandler<RuleCalculateBaseCMB> {
+      public void OnEventAboutToTrigger(RuleCalculateBaseCMB evt) {
+        var stats = Owner?.Stats;
+        if (stats == null) return;
+
+        var currentStat = evt.ReplaceStrength ?? StatType.Strength;
+        var current = stats.GetStat(currentStat) as ModifiableValueAttributeStat;
+        if (current == null) return;
+
+        if (stats.Dexterity.Bonus > current.Bonus) {
+          evt.ReplaceStrength = StatType.Dexterity;
+        }
+      }
+
+      public void OnEventDidTrigger(RuleCalculateBaseCMB evt) {
+      }
     }
   }
 }
