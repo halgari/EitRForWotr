@@ -28,7 +28,7 @@ STAGE=$(mktemp -d)
 trap 'rm -rf "$STAGE"' EXIT
 
 mkdir -p "$STAGE/$ID/Localization"
-cp "bin/$ID.dll" "$STAGE/$ID/"
+cp "bin/Release/net472/$ID.dll" "$STAGE/$ID/"
 cp Info.json     "$STAGE/$ID/"
 cp Localization/*.json "$STAGE/$ID/Localization/"
 

@@ -1,13 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <!-- net10.0 only gets added when the headless harness's neutralized
+         Assembly-CSharp exists (i.e. someone ran Walker). Without it the
+         net10 build can't resolve Kingmaker types and would error; gating on
+         the file lets a fresh clone with no submodule init still produce
+         the deployable net472 dll. -->
+    <NeutralizedAsmCSharp>$(MSBuildThisFileDirectory)external/wotr-headless/Walker/neutralized/Assembly-CSharp.dll</NeutralizedAsmCSharp>
+    <HasNeutralized Condition="Exists('$(NeutralizedAsmCSharp)')">true</HasNeutralized>
+    <HasNeutralized Condition="'$(HasNeutralized)' == ''">false</HasNeutralized>
+
+    <TargetFrameworks Condition="'$(HasNeutralized)' == 'true'">net472;net10.0</TargetFrameworks>
+    <TargetFramework Condition="'$(HasNeutralized)' != 'true'">net472</TargetFramework>
+
     <LangVersion>latest</LangVersion>
     <AssemblyName>EitRForWotr</AssemblyName>
     <RootNamespace>EitRForWotr</RootNamespace>
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <OutputPath>bin/</OutputPath>
     <Nullable>disable</Nullable>
+
+    <!-- The submodule under external/ and the standalone Tests/ project are
+         each separate projects. Without these excludes the SDK's implicit
+         Compile glob would sweep their .cs files into our build. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);external/**;Tests/**</DefaultItemExcludes>
+    <DefaultExcludesInProjectFolder>$(DefaultExcludesInProjectFolder);external/**;Tests/**</DefaultExcludesInProjectFolder>
 
     <!-- Override these on the command line if your install lives elsewhere:
          dotnet build -p:WrathDir=/path/to/Wrath -p:ModDir=/path/to/UMM/EitRForWotr -->
@@ -17,8 +32,9 @@
     <ModDir Condition="'$(ModDir)' == ''">$(WrathDir)/Mods/EitRForWotr</ModDir>
   </PropertyGroup>
 
-  <!-- Game-shipped assemblies referenced by file path (not on NuGet) -->
-  <ItemGroup>
+  <!-- net472: the shipped UMM mod. Pulls Assembly-CSharp + UMM + Harmony +
+       BlueprintCore. Default SDK output layout: bin/$(Configuration)/net472/. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <Reference Include="Assembly-CSharp">
       <HintPath>$(WrathDir)/Wrath_Data/Managed/Assembly-CSharp.dll</HintPath>
       <Private>false</Private>
@@ -37,7 +53,7 @@
     </Reference>
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <!-- net472 reference assemblies (Arch's dotnet-sdk-9.0 doesn't ship them on disk). -->
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.3" PrivateAssets="all" />
 
@@ -49,7 +65,37 @@
     <PackageReference Include="UnityModManager" Version="0.32.4" PrivateAssets="all" />
   </ItemGroup>
 
-  <Target Name="Deploy" AfterTargets="Build">
+  <!-- net10.0: a slim build for the headless test harness. References only the
+       publicized/neutralized Assembly-CSharp (no BlueprintCore / Harmony / UMM,
+       which are net472-only). Compiles only the Components/ folder — the
+       custom blueprint components, which are pure Kingmaker-types-only and
+       portable across TFMs. The mutators / patches / Main use net472-only
+       packages and are excluded from the net10 build. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(NeutralizedAsmCSharp)</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>$(MSBuildThisFileDirectory)external/wotr-headless/Walker/neutralized/Assembly-CSharp-firstpass.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(WrathDir)/Wrath_Data/Managed/UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(WrathDir)/Wrath_Data/Managed/UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <Compile Remove="**/*.cs" />
+    <Compile Include="Components/**/*.cs" />
+  </ItemGroup>
+
+  <Target Name="Deploy" AfterTargets="Build" Condition="'$(TargetFramework)' == 'net472'">
     <MakeDir Directories="$(ModDir)" />
     <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(ModDir)" />
     <Copy SourceFiles="Info.json" DestinationFolder="$(ModDir)" />

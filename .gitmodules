@@ -1,0 +1,3 @@
+[submodule "external/wotr-headless"]
+	path = external/wotr-headless
+	url = https://github.com/halgari/wotr-headless

@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);MSB3270;MSB3277;CS8002;NU1701;SYSLIB0050</NoWarn>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <NeutralizedDir>$(MSBuildThisFileDirectory)../external/wotr-headless/Walker/neutralized</NeutralizedDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TUnit" Version="*" />
+  </ItemGroup>
+
+  <!-- The headless rules harness — provides RulesArena, Unit, Host.EnsureInitialized.
+       Project-referenced so a `dotnet build` from any subdir picks up local edits. -->
+  <ItemGroup>
+    <ProjectReference Include="../external/wotr-headless/Wotr.Headless/Wotr.Headless.csproj" />
+  </ItemGroup>
+
+  <!-- The mod itself: net10 build contains only the custom blueprint components
+       (no BlueprintCore / Harmony / UMM). That's all we need to drive tests. -->
+  <ItemGroup>
+    <ProjectReference Include="../EitRForWotr.csproj" SetTargetFramework="TargetFramework=net10.0" />
+  </ItemGroup>
+
+  <!-- Same publicized Assembly-CSharp the harness compiles against, so types
+       like BlueprintFeature, ReplaceCombatManeuverStat, RuleCalculateBaseCMB
+       are directly usable from test code (no reflection-by-name for these). -->
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(NeutralizedDir)/Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>$(NeutralizedDir)/Assembly-CSharp-firstpass.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>
